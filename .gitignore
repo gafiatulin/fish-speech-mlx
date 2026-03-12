@@ -1,0 +1,19 @@
+# Model weights and build artifacts
+build/
+*.pth
+*.safetensors
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
+
+# Generated audio
+*.wav
+*.npy
+
+# Project root marker (auto-created for fish_speech lib)
+.project-root
