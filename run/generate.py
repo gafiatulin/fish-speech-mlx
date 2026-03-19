@@ -309,17 +309,22 @@ def _fast_ar_generate(model, last_hidden: mx.array, code_0: mx.array,
     Uses simple temperature sampling (no top-p) for speed.
     Keeps everything as mx.arrays — no .item() calls, single eval at end.
 
+    Batches the prime (hidden state) + first codebook into a single forward
+    pass with L=2, saving one full Fast AR forward pass (~10% Fast AR cost).
+
     Returns:
         codes: [10] codebook indices
     """
     codes = [code_0]
 
-    # Step 0: prime fast AR with slow hidden state
-    model.fast(last_hidden, cache=fast_cache)
-
-    # Step 1: embed code_0, predict codebook 1
-    cb_input = model.fast.embeddings(code_0.reshape(1, 1))
-    fast_logits = model.fast(cb_input, cache=fast_cache)
+    # Batch prime + first codebook: single forward pass instead of two.
+    # Position 0 = slow AR hidden state (prime), position 1 = code_0 embedding.
+    # Causal mask ensures position 0 only attends to itself.
+    cb0_embed = model.fast.embeddings(code_0.reshape(1, 1))  # [1, 1, dim]
+    combined = mx.concatenate([last_hidden, cb0_embed], axis=1)  # [1, 2, dim]
+    mask = nn.MultiHeadAttention.create_additive_causal_mask(2)
+    mask = mask.astype(combined.dtype)
+    fast_logits = model.fast(combined, mask=mask, cache=fast_cache)
     cb_token = _sample_simple(fast_logits[0, -1, :], temperature=temperature)
     codes.append(cb_token)
 

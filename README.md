@@ -31,19 +31,23 @@ uv run python run/e2e_pipeline.py --text "Hello again!" --voice speaker.npz
 
 ## Performance
 
-Benchmarked with voice cloning, subprocess-isolated, on Apple Silicon:
+Benchmarked subprocess-isolated on Apple Silicon (M4 Max, 64 GB):
 
-| Config | RTF | ms/tok | Peak Memory |
-|--------|-----|--------|-------------|
-| bf16 | 1.11x | 37.4 | 15.6 GB |
-| slow-int8 | 1.35x | 30.8 | 12.3 GB |
-| int8 | 1.70x | 23.8 | 12.1 GB |
-| s8+f4 | 1.99x | 19.8 | 10.2 GB |
-| int4 | 2.35x | 16.0 | 9.8 GB |
+| Config | RTF | ms/tok | Peak Memory | Notes |
+|--------|-----|--------|-------------|-------|
+| bf16 | 1.12x | 38.6 | 14.4 GB | Full precision, best quality baseline |
+| slow-int8 | 1.33x | 32.2 | 11.0 GB | Only slow AR (4B) quantized to 8-bit |
+| fast-int8 | 1.42x | 29.7 | 13.6 GB | Only fast AR (400M) quantized to 8-bit |
+| slow-int4 | 1.48x | 28.7 | 9.0 GB | Only slow AR quantized to 4-bit |
+| fast-int4 | 1.61x | 26.0 | 13.6 GB | Only fast AR quantized to 4-bit |
+| int8 | 1.80x | 23.1 | 10.5 GB | Both ARs 8-bit |
+| s8+f4 | 2.11x | 19.4 | 10.4 GB | Slow 8-bit, fast 4-bit |
+| s4+f8 | 2.09x | 19.5 | 8.6 GB | Slow 4-bit, fast 8-bit. Same speed, least memory |
+| int4 | 2.55x | 15.6 | 8.7 GB | Both ARs 4-bit. Fastest |
 
 RTF = real-time factor (audio duration / compute time). Values >1.0 are faster than real-time.
 
-All configs generate above real-time. int4 produces audio 2.35x faster than playback speed.
+All configs generate above real-time. int4 produces audio 2.55x faster than playback speed.
 
 ## Features
 
@@ -86,6 +90,10 @@ The Slow AR vocabulary is 155,776 tokens, but during generation only ~4,097 are 
 ### Speculative Fast AR
 
 Each generation step runs both the Slow AR (predict semantic token) and Fast AR (fill 9 residual codebooks). A naive implementation would `eval()` the Slow AR result, check for EOS, then run the Fast AR — two GPU pipeline stalls per step. Instead, we run the Fast AR speculatively before evaluating the Slow AR token. If it turns out to be EOS, we discard one wasted Fast AR pass. On every non-EOS step (the vast majority), we eliminate a GPU stall.
+
+### Batched Fast AR Prime
+
+The Fast AR generates 10 codebook tokens per frame. The first two operations — priming the KV cache with the Slow AR hidden state and predicting the first codebook — were originally two separate forward passes through all 4 layers. By concatenating them into a single L=2 input with a causal mask, we eliminate one full forward pass per generation step (~5% of Fast AR cost).
 
 ### Vectorized Repetition Penalty
 
