@@ -16,25 +16,25 @@ uv sync
 
 ```bash
 # Generate speech (model downloads automatically)
-fish-speech-mlx --text "Hello, world!"
+uv run fish-speech-mlx --text "Hello, world!"
 
 # With quantization for faster generation
-fish-speech-mlx --text "Hello, world!" --quantize int4
+uv run fish-speech-mlx --text "Hello, world!" --quantize int4
 
 # Voice cloning from reference audio
-fish-speech-mlx \
+uv run fish-speech-mlx \
     --text "Hello, world!" \
     --ref-audio voice.wav \
     --ref-text "transcript of the reference audio"
 
 # Save voice imprint for reuse
-fish-speech-mlx \
+uv run fish-speech-mlx \
     --text "Hello!" \
     --ref-audio voice.wav --ref-text "transcript" \
     --save-voice speaker.npz
 
 # Reuse saved voice
-fish-speech-mlx --text "Hello again!" --voice speaker.npz
+uv run fish-speech-mlx --text "Hello again!" --voice speaker.npz
 ```
 
 ### Python API
