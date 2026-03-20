@@ -4,29 +4,45 @@ Optimized [MLX](https://github.com/ml-explore/mlx) inference for [Fish Audio S2 
 
 Model weights auto-download from [mlx-community/fish-audio-s2-pro-bf16](https://huggingface.co/mlx-community/fish-audio-s2-pro-bf16) on first run.
 
+## Install
+
+```bash
+git clone https://github.com/gafiatulin/fish-speech-mlx.git
+cd fish-speech-mlx
+uv sync
+```
+
 ## Quick Start
 
 ```bash
 # Generate speech (model downloads automatically)
-uv run python run/e2e_pipeline.py --text "Hello, world!"
+fish-speech-mlx --text "Hello, world!"
 
 # With quantization for faster generation
-uv run python run/e2e_pipeline.py --text "Hello, world!" --quantize int4
+fish-speech-mlx --text "Hello, world!" --quantize int4
 
 # Voice cloning from reference audio
-uv run python run/e2e_pipeline.py \
+fish-speech-mlx \
     --text "Hello, world!" \
     --ref-audio voice.wav \
     --ref-text "transcript of the reference audio"
 
 # Save voice imprint for reuse
-uv run python run/e2e_pipeline.py \
+fish-speech-mlx \
     --text "Hello!" \
     --ref-audio voice.wav --ref-text "transcript" \
     --save-voice speaker.npz
 
 # Reuse saved voice
-uv run python run/e2e_pipeline.py --text "Hello again!" --voice speaker.npz
+fish-speech-mlx --text "Hello again!" --voice speaker.npz
+```
+
+### Python API
+
+```python
+from fish_speech_mlx import load_model, generate, GenerationConfig
+
+model = load_model("mlx-community/fish-audio-s2-pro-bf16", quantize="int4")
 ```
 
 ## Performance
@@ -128,7 +144,8 @@ Generated codebook columns are written into a pre-allocated `[11, max_tokens]` b
 ## Project Structure
 
 ```
-run/
+fish_speech_mlx/
+  __init__.py        Public API re-exports
   e2e_pipeline.py    CLI entry point
   model.py           Dual-AR model (SlowAR + FastAR)
   generate.py        Generation pipeline, sampling, text chunking

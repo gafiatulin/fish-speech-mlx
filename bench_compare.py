@@ -25,12 +25,10 @@ def make_script(text, voice, seed, quantize=None, quantize_slow=None, quantize_f
     voice_repr = repr(voice) if voice else "None"
     return textwrap.dedent(f"""\
 import json, time, sys, numpy as np, mlx.core as mx
-sys.path.insert(0, "run")
-
 from transformers import AutoTokenizer
-from load_weights import load_model, resolve_model_path
-from generate import build_prompt, build_prompt_with_reference, generate, GenerationConfig
-from dac_decoder import FishCodecDecoder, load_codec_weights
+from fish_speech_mlx.load_weights import load_model, resolve_model_path
+from fish_speech_mlx.generate import build_prompt, build_prompt_with_reference, generate, GenerationConfig
+from fish_speech_mlx.dac_decoder import FishCodecDecoder, load_codec_weights
 
 model_path = resolve_model_path("mlx-community/fish-audio-s2-pro-bf16")
 tokenizer = AutoTokenizer.from_pretrained(str(model_path))

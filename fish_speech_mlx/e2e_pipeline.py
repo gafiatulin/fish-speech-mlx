@@ -2,10 +2,10 @@
 """Fish Audio S2 Pro — MLX end-to-end TTS pipeline.
 
 Usage:
-    uv run python run/e2e_pipeline.py --text "Hello, world!"
-    uv run python run/e2e_pipeline.py --text "Hello!" --quantize int4
-    uv run python run/e2e_pipeline.py --text "Hello!" --ref-audio voice.wav --ref-text "transcript"
-    uv run python run/e2e_pipeline.py --text "Hello!" --voice speaker1.npz
+    fish-speech-mlx --text "Hello, world!"
+    fish-speech-mlx --text "Hello!" --quantize int4
+    fish-speech-mlx --text "Hello!" --ref-audio voice.wav --ref-text "transcript"
+    fish-speech-mlx --text "Hello!" --voice speaker1.npz
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def encode_reference(audio_path: Path, transcript: str,
 
     audio_mx = mx.array(audio_data.astype(np.float32))[None, None, :]
 
-    from dac_encoder import FishCodecEncoder, DACConfig, load_codec_encoder_weights
+    from .dac_encoder import FishCodecEncoder, DACConfig, load_codec_encoder_weights
 
     codec_path = model_path / "codec.safetensors"
     if not codec_path.exists():
@@ -67,7 +67,7 @@ def load_voice(path: Path) -> dict:
 
 
 def main():
-    from load_weights import DEFAULT_MODEL
+    from .load_weights import DEFAULT_MODEL
 
     parser = argparse.ArgumentParser(description="Fish Audio S2 Pro MLX TTS")
     parser.add_argument("--text", required=True, help="Text to synthesize")
@@ -112,7 +112,7 @@ def main():
     print()
 
     # 1. Resolve model path and load
-    from load_weights import load_model, resolve_model_path
+    from .load_weights import load_model, resolve_model_path
     model_path = resolve_model_path(args.model)
 
     print("Loading tokenizer...")
@@ -127,7 +127,7 @@ def main():
     print(f"  Loaded in {time.time() - t0:.1f}s")
 
     # 2. Build prompt
-    from generate import (
+    from .generate import (
         build_prompt, build_prompt_with_reference, build_prompt_multi_speaker,
         build_voice_prefix, build_text_suffix, prefill_voice,
         generate, GenerationConfig, chunk_text,
@@ -260,7 +260,7 @@ def main():
 
     t_dec = time.time()
 
-    from dac_decoder import FishCodecDecoder, load_codec_weights
+    from .dac_decoder import FishCodecDecoder, load_codec_weights
     codec = FishCodecDecoder()
     load_codec_weights(codec, mx.load(str(codec_path)))
 
@@ -292,7 +292,7 @@ def main():
 
     # Speed adjustment
     if args.speed != 1.0:
-        from generate import adjust_speed
+        from .generate import adjust_speed
         audio_mx = mx.array(audio_np)
         audio_mx = adjust_speed(audio_mx, args.speed)
         mx.eval(audio_mx)

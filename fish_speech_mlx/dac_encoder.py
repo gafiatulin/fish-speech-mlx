@@ -18,7 +18,7 @@ import math
 import mlx.core as mx
 import mlx.nn as nn
 
-from dac_decoder import (
+from .dac_decoder import (
     DACConfig,
     Snake1d,
     CausalConv1d,

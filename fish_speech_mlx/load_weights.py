@@ -13,7 +13,7 @@ from typing import Optional
 import mlx.core as mx
 import mlx.nn as nn
 
-from model import DualARModel, SlowARConfig, FastARConfig
+from .model import DualARModel, SlowARConfig, FastARConfig
 
 DEFAULT_MODEL = "mlx-community/fish-audio-s2-pro-bf16"
 

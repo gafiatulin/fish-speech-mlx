@@ -16,7 +16,7 @@ from typing import Optional, Tuple
 import mlx.core as mx
 import mlx.nn as nn
 
-from model import DualARModel, KVCache, RotatingKVCache
+from .model import DualARModel, KVCache, RotatingKVCache
 
 
 # Special token IDs
