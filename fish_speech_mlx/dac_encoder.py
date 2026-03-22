@@ -365,7 +365,7 @@ class FishCodecEncoder(nn.Module):
 
 def _map_raw_encoder_residual_unit(state, mapped, src_prefix, dst_prefix):
     """Map a raw ResidualUnit for encoder."""
-    from dac_decoder import _wn_weight
+    from fish_speech_mlx.dac_decoder import _wn_weight
     mapped[f"{dst_prefix}.snake1.alpha"] = state[f"{src_prefix}.0.alpha"]
     w = _wn_weight(state[f"{src_prefix}.1.weight_g"], state[f"{src_prefix}.1.weight_v"])
     mapped[f"{dst_prefix}.conv1.weight"] = w
@@ -378,7 +378,7 @@ def _map_raw_encoder_residual_unit(state, mapped, src_prefix, dst_prefix):
 
 def _map_raw_codec_encode(state):
     """Map raw PyTorch encoder weights to MLX model names."""
-    from dac_decoder import _wn_weight, _map_transformer_layers, _map_convnext
+    from fish_speech_mlx.dac_decoder import _wn_weight, _map_transformer_layers, _map_convnext
     mapped = {}
 
     # 1. DAC Encoder input conv
